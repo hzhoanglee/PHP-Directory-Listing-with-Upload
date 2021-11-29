@@ -12,15 +12,18 @@ It does also support upload with DropzoneJS.
 ## Plan
 > 29/11/2021
 
-- [ ] Configurable options
-- [ ] Exclude some file
+- [x] Configurable options
+- [x] Exclude some file
 - [ ] Optimize and clean code
-- [ ] Page view
+- [x] Page view
 - [ ] Dive in folders without reload
 - [ ] Preview files
 - [ ] Admin panel (delete, copy, move, etc)
 - [ ] Single File version
 - [ ] Lite version
+
+> 30/11/2021
+- [ ] Upload to current folder
  
 ## Screenshots
 ![File listing](screenshots/1.png)

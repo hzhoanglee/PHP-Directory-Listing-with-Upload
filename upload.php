@@ -1,8 +1,5 @@
 <?php
 
-// define absolute folder path
-$dest_folder = 'upload/';
-
 if (!empty($_FILES)) {
 
     // if dest folder doesen't exists, create it

@@ -1,28 +1,27 @@
-<pre>
 <?php
-//VERSION: 0.1_beta
+//VERSION: 0.2_beta
 $time_start = microtime(true);
-if (isset($_GET["dir"])){
-    $dir = $_GET["dir"];
-} else {
-    $dir = ".";
+header('Content-Type: application/json; charset=utf-8');
+require_once ("config.php");
+//Get Parameters
+$dir = $_GET["dir"] ?? ".";
+$page = $_GET["page"] ?? 1;
+if (isset($_GET["pagination"])){
+    $cfg_page = $_GET["pagination"];
 }
+// Get file list, pagination and couting
 $files = array_diff(scandir($dir), array('.', '..'));
+$files_total = count($files);
+if ($cfg_page !== 0){
+    $files = array_chunk($files, $cfg_page);
+    $page_max = count($files);
+    $files = $files[$page-1];
+}
 $i = 0;
 
-function display_size($bytes)
-{
-    $units = array('B', 'KB', 'MB', 'GB', 'TB');
-    $bytes = max($bytes, 0);
-    $unit = floor(($bytes ? log($bytes) : 0) / log(1024));
-    $unit = min($unit, count($units) - 1);
-    $bytes /= (1 << (10 * $unit));
-    return round($bytes, 2) . " " . $units[$unit];
-}
 
 foreach ($files as $file) {
     $file = $dir . "/" . $file;
-    //print_r(pathinfo($file));
     if (is_dir($file)) {
         $output[$i]["type"] = "Folder";
         $output[$i]["name"] = pathinfo($file)["basename"];
@@ -30,7 +29,7 @@ foreach ($files as $file) {
         $output[$i]["type"] = "File";
         $output[$i]["name"] = pathinfo($file)["basename"];
         $output[$i]["extension"] = pathinfo($file)["extension"];
-        $output[$i]["size"] = display_size(filesize($file));
+        $output[$i]["size"] = getsize(filesize($file));
     }
     $output[$i]["last_modify"] = date("Y-m-d H:i:s", filemtime($file));
     $output[$i]["last_open"] = date("Y-m-d H:i:s", fileatime($file));
@@ -39,6 +38,8 @@ foreach ($files as $file) {
 }
 $sort = array_column($output, 'type');
 array_multisort($sort, SORT_DESC, $output);
-$output["no_of_files"] = $i + 1;
-$output["exetime"] = round((microtime(true) - $time_start),5);
-print_r($output);
+$exetime = round((microtime(true) - $time_start),5);
+//Print Final Result
+$final["info"] = ["directory" => $dir,"current_page" => $page, "total_page" => $page_max,"pagination" => $cfg_page, "process_time" => $exetime, "total_files" => $files_total];
+$final["files"] = $output;
+echo json_encode($final,JSON_PRETTY_PRINT);

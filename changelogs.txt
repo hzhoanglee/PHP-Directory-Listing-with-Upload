@@ -1,0 +1,2 @@
+VERSION - 0.1_beta: Initial function
+VERSION - 0.2_beta: Add pagination, config, update JSON for API

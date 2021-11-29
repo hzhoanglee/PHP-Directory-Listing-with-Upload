@@ -1,40 +1,41 @@
 <?php
-$url = $_SERVER["REQUEST_URI"];
+require_once("config.php");
 $time_start = microtime(true);
-if (isset($_GET["dir"])){
-    $dir = $_GET["dir"];
-} else {
-    $dir = ".";
+//Get Parameters
+$dir = $_GET["dir"] ?? ".";
+$page = $_GET["page"] ?? 1;
+if (isset($_GET["pagination"])){
+    $cfg_page = $_GET["pagination"];
 }
+// Get file list, pagination and couting
 $files = array_diff(scandir($dir), array('.', '..'));
+$files_total = count($files);
+if ($cfg_page !== 0){
+    $files = array_chunk($files, $cfg_page);
+    $page_max = count($files);
+    $files = $files[$page-1];
+}
+// Counting
 $i = 0;
 
-function size($bytes)
-{
-    $units = array('B', 'KB', 'MB', 'GB', 'TB');
-    $bytes = max($bytes, 0);
-    $unit = floor(($bytes ? log($bytes) : 0) / log(1024));
-    $unit = min($unit, count($units) - 1);
-    $bytes /= (1 << (10 * $unit));
-    return round($bytes, 2) . " " . $units[$unit];
-}
-
 foreach ($files as $file) {
-    $file = $dir . "/" . $file;
-    //print_r(pathinfo($file));
-    if (is_dir($file)) {
-        $output[$i]["type"] = "Folder";
-        $output[$i]["name"] = pathinfo($file)["basename"];
-    } else {
-        $output[$i]["type"] = "File";
-        $output[$i]["name"] = pathinfo($file)["basename"];
-        $output[$i]["extension"] = pathinfo($file)["extension"];
-        $output[$i]["size"] = size(filesize($file));
+    if (!in_array(pathinfo($file)["basename"], $exclude)){
+        $file = $dir . "/" . $file;
+        //print_r(pathinfo($file));
+        if (is_dir($file)) {
+            $output[$i]["type"] = "Folder";
+            $output[$i]["name"] = pathinfo($file)["basename"];
+        } else {
+            $output[$i]["type"] = "File";
+            $output[$i]["name"] = pathinfo($file)["basename"];
+            $output[$i]["extension"] = pathinfo($file)["extension"];
+            $output[$i]["size"] = getsize(filesize($file));
+        }
+        $output[$i]["last_modify"] = date("Y-m-d H:i:s", filemtime($file));
+        $output[$i]["last_open"] = date("Y-m-d H:i:s", fileatime($file));
+        $output[$i]["path"] = $file;
+        $i++;
     }
-    $output[$i]["last_modify"] = date("Y-m-d H:i:s", filemtime($file));
-    $output[$i]["last_open"] = date("Y-m-d H:i:s", fileatime($file));
-    $output[$i]["path"] = $file;
-    $i++;
 }
 $sort = array_column($output, 'type');
 array_multisort($sort, SORT_DESC, $output);
@@ -246,7 +247,7 @@ array_multisort($sort, SORT_DESC, $output);
                             </div>
                         </div>
                         <div class="float-md-right">
-                            <span class="text-muted text-small"><?php echo $i +1 ;?> files </span>
+                            <span class="text-muted text-small">Displaying: <?php echo $i;?> files of <?php echo $files_total;?> </span>
                             <button class="btn btn-outline-dark btn-xs dropdown-toggle" type="button"
                                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 20
@@ -342,31 +343,39 @@ array_multisort($sort, SORT_DESC, $output);
                 <nav class="mt-4 mb-3">
                     <ul class="pagination justify-content-center mb-0">
                         <li class="page-item ">
-                            <a class="page-link first" href="#">
+                            <a class="page-link first" href="?<?php echo build_page(1)?>">
                                 <i class="simple-icon-control-start"></i>
                             </a>
                         </li>
                         <li class="page-item ">
-                            <a class="page-link prev" href="#">
+                            <a class="page-link prev" href="?<?php echo build_page($page-1)?>">
                                 <i class="simple-icon-arrow-left"></i>
                             </a>
                         </li>
+                        <?php
+                            if($page - 1 > 0){
+                                echo '<li class="page-item">
+                                        <a class="page-link" href="?' . build_page($page - 1) . '">' . ($page - 1) . '</a>
+                                        </li>';
+                            }
+                        ?>
                         <li class="page-item active">
-                            <a class="page-link" href="#">1</a>
+                            <a class="page-link" href="?<?php echo build_page($page)?>"> <?php echo $page; ?></a>
                         </li>
+                        <?php
+                        if($page + 1 < $page_max){
+                            echo '<li class="page-item">
+                                        <a class="page-link" href="?' . build_page($page + 1) . '">' . ($page + 1) . '</a>
+                                        </li>';
+                        }
+                        ?>
                         <li class="page-item ">
-                            <a class="page-link" href="#">2</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="#">3</a>
-                        </li>
-                        <li class="page-item ">
-                            <a class="page-link next" href="#" aria-label="Next">
+                            <a class="page-link next" href="?<?php echo build_page($page+1)?>" aria-label="Next">
                                 <i class="simple-icon-arrow-right"></i>
                             </a>
                         </li>
                         <li class="page-item ">
-                            <a class="page-link last" href="#">
+                            <a class="page-link last" href="?<?php echo build_page($page_max)?>">
                                 <i class="simple-icon-control-end"></i>
                             </a>
                         </li>

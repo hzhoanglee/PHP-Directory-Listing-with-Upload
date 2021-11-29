@@ -1,15 +1,11 @@
 <?php
 $url = $_SERVER["REQUEST_URI"];
 $time_start = microtime(true);
-if (isset($_GET["dir"])){
-    $dir = $_GET["dir"];
-} else {
-    $dir = ".";
-}
+$dir = $_GET["dir"] ?? ".";
 $files = array_diff(scandir($dir), array('.', '..'));
 $i = 0;
 
-function display_size($bytes)
+function getsize($bytes)
 {
     $units = array('B', 'KB', 'MB', 'GB', 'TB');
     $bytes = max($bytes, 0);
@@ -29,7 +25,7 @@ foreach ($files as $file) {
         $output[$i]["type"] = "File";
         $output[$i]["name"] = pathinfo($file)["basename"];
         $output[$i]["extension"] = pathinfo($file)["extension"];
-        $output[$i]["size"] = display_size(filesize($file));
+        $output[$i]["size"] = getsize(filesize($file));
     }
     $output[$i]["last_modify"] = date("Y-m-d H:i:s", filemtime($file));
     $output[$i]["last_open"] = date("Y-m-d H:i:s", fileatime($file));

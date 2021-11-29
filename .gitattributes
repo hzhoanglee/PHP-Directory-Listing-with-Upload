@@ -26,7 +26,7 @@
 *.tab text
 *.tsv text
 *.coffee text
-*.css text
+*.css text linguist-language=PHP
 *.htm text
 *.html text
 *.xhtml text
