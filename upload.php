@@ -1,5 +1,7 @@
 <?php
-
+function get_file_extension($file_name) {
+    return substr(strrchr($file_name,'.'),1);
+}
 if (!empty($_FILES)) {
 
     // if dest folder doesen't exists, create it
